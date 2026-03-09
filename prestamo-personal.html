@@ -1,0 +1,909 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Préstamo Personal — Mercado Pago</title>
+  <style>
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      background: #e8eaf0;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      font-family: -apple-system, 'Inter', BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    .phone-wrap {
+      position: relative;
+    }
+
+    .phone {
+      width: 360px;
+      height: 780px;
+      background: #fff;
+      border-radius: 36px;
+      overflow: hidden;
+      box-shadow: 0 24px 80px rgba(0,0,0,.25), 0 0 0 10px #1a1a2e;
+      position: relative;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* ── SCREEN ── */
+    .screen {
+      display: none;
+      flex-direction: column;
+      width: 100%;
+      height: 100%;
+      background: #fff;
+      position: absolute;
+      top: 0; left: 0;
+    }
+    .screen.active { display: flex; }
+
+    /* ── STATUS BAR ── */
+    .status-bar {
+      height: 28px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 20px;
+      background: rgba(255,255,255,.95);
+      flex-shrink: 0;
+      z-index: 10;
+    }
+    .status-time { font-size: 12px; font-weight: 600; color: #252537; letter-spacing: .3px; }
+    .status-icons { display: flex; align-items: center; gap: 5px; }
+    .status-icons svg { opacity: .8; }
+
+    /* ── HEADER ── */
+    .hdr {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 6px 16px 4px;
+      flex-shrink: 0;
+    }
+    .hdr-center { flex: 1; }
+    .icon-btn {
+      width: 36px; height: 36px;
+      border-radius: 10px;
+      background: #e9f1ff;
+      border: none; cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      transition: background .15s;
+    }
+    .icon-btn:hover { background: #d6e8ff; }
+    .icon-btn.ghost { background: transparent; pointer-events: none; }
+    .page-title {
+      font-size: 24px; font-weight: 700;
+      color: #252537; line-height: 1.25;
+      padding: 4px 16px 12px;
+      flex-shrink: 0;
+    }
+
+    /* ── CARDS ── */
+    .card {
+      border: 1.5px solid #d0d4e6;
+      border-radius: 20px;
+      padding: 16px;
+      background: #fff;
+      cursor: pointer;
+      transition: border-color .2s, box-shadow .2s;
+    }
+    .card:hover { border-color: #a0a8f0; box-shadow: 0 4px 16px rgba(72,80,229,.08); }
+    .card.selected { border-color: #4850e5; border-width: 2px; }
+
+    .card-title { font-size: 16px; font-weight: 700; color: #252537; }
+    .card-amount { font-size: 16px; color: #252537; margin: 6px 0; }
+    .card-feature { display: flex; align-items: center; gap: 6px; margin-top: 5px; }
+    .card-feature span { font-size: 12px; color: #252537; }
+    .check-icon { color: #00a650; font-size: 13px; }
+
+    .badge-new {
+      background: #434ce4; color: #fff;
+      font-size: 10px; font-weight: 700;
+      padding: 2px 8px; border-radius: 99px;
+      display: inline-block; margin-left: 8px;
+    }
+
+    /* ── ACTION FOOTER ── */
+    .action-footer {
+      padding: 12px 16px 16px;
+      background: #fff;
+      box-shadow: 0 -2px 8px rgba(37,37,55,.08);
+      flex-shrink: 0;
+    }
+
+    /* ── BUTTONS ── */
+    .btn {
+      width: 100%; height: 48px;
+      border-radius: 12px;
+      font-size: 14px; font-weight: 600;
+      border: none; cursor: pointer;
+      transition: opacity .15s, background .15s;
+    }
+    .btn-primary { background: #4850e5; color: #fff; }
+    .btn-primary:hover { background: #3a42d4; }
+    .btn-primary:disabled { background: #e7e9f3; color: #b5b9d4; cursor: not-allowed; }
+    .btn-ghost { background: transparent; color: #4850e5; font-size: 14px; }
+
+    /* ── AMOUNT INPUT ── */
+    .amount-area {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+      justify-content: center;
+      padding: 0 20px;
+    }
+    .amount-row {
+      display: flex;
+      align-items: baseline;
+      gap: 6px;
+    }
+    .amount-currency {
+      font-size: 32px;
+      font-weight: 700;
+      color: #b5b9d4;
+      transition: color .2s;
+    }
+    .amount-currency.filled { color: #252537; }
+    .amount-value {
+      font-size: 52px;
+      font-weight: 700;
+      color: #252537;
+      letter-spacing: -2px;
+      min-width: 10px;
+    }
+    .amount-placeholder { color: #b5b9d4; }
+    .amount-cursor {
+      width: 3px; height: 52px;
+      background: #4850e5;
+      display: inline-block;
+      vertical-align: bottom;
+      border-radius: 2px;
+      animation: blink 1s step-end infinite;
+    }
+    @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0} }
+
+    .helper {
+      margin-top: 8px;
+      font-size: 12px;
+      color: #646587;
+    }
+    .helper.error {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      color: #eb1708;
+      font-weight: 600;
+    }
+    .err-icon {
+      width: 14px; height: 14px;
+      border-radius: 50%;
+      background: #c21105;
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+    }
+    .err-icon::after { content: '–'; color: #fff; font-size: 10px; font-weight: 900; }
+
+    /* ── KEYBOARD ── */
+    .keyboard {
+      background: #cdd0d8;
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 5px;
+      padding: 6px 5px 10px;
+      flex-shrink: 0;
+    }
+    .key {
+      background: #fff;
+      border: none;
+      border-radius: 8px;
+      height: 52px;
+      font-size: 24px;
+      font-weight: 400;
+      color: #252537;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 1px 0 rgba(0,0,0,.25);
+      transition: background .1s;
+    }
+    .key:active { background: #c0c4cf; }
+    .key.key-dark { background: #adb1bb; font-size: 14px; }
+    .key.key-del { background: #adb1bb; }
+    .key.key-empty { background: transparent; box-shadow: none; cursor: default; }
+
+    /* ── SNACKBAR ── */
+    .snackbar {
+      position: absolute;
+      left: 10px; right: 10px;
+      bottom: 10px;
+      background: #252537;
+      border-radius: 12px;
+      padding: 14px 16px;
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      box-shadow: 0 8px 20px rgba(37,37,55,.2);
+      z-index: 500;
+      animation: snackIn .3s ease;
+    }
+    @keyframes snackIn {
+      from { transform: translateY(16px); opacity: 0; }
+      to   { transform: translateY(0);    opacity: 1; }
+    }
+    .snack-icon {
+      width: 20px; height: 20px;
+      border-radius: 50%;
+      background: #007abd;
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0; margin-top: 1px;
+    }
+    .snack-text { font-size: 14px; color: #fff; line-height: 1.4; }
+
+    /* ── REQUEST SUMMARY ── */
+    .req-summary {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      font-size: 15px;
+      color: #252537;
+      padding: 0 16px 10px;
+      flex-shrink: 0;
+    }
+    .req-amount { font-weight: 600; }
+    .req-edit {
+      background: none; border: none; cursor: pointer;
+      color: #4850e5; font-size: 15px; display: flex; align-items: center;
+    }
+
+    /* ── GRACE PERIOD SELECTOR ── */
+    .grace-section {
+      padding: 8px 16px 4px;
+      flex-shrink: 0;
+    }
+    .grace-label { font-size: 13px; font-weight: 600; color: #252537; margin-bottom: 10px; }
+    .grace-cards { display: flex; gap: 8px; }
+    .grace-card {
+      flex: 1;
+      border: 1.5px solid #d0d4e6;
+      border-radius: 12px;
+      padding: 12px 8px;
+      text-align: center;
+      cursor: pointer;
+      background: #fff;
+      transition: all .2s;
+    }
+    .grace-card:hover { border-color: #a0a8f0; }
+    .grace-card.selected { border-color: #4850e5; border-width: 2px; background: #f0f2ff; }
+    .grace-card-num { font-size: 22px; font-weight: 700; color: #252537; }
+    .grace-card.selected .grace-card-num { color: #4850e5; }
+    .grace-card-sub { font-size: 11px; color: #646587; margin-top: 2px; }
+    .grace-hint {
+      font-size: 11px; color: #646587;
+      text-align: center; margin-top: 6px;
+      min-height: 14px;
+    }
+
+    /* ── INSTALLMENT LIST ── */
+    .installments-wrap {
+      flex: 1;
+      overflow-y: auto;
+      padding: 0 16px;
+    }
+    .inst-section-title {
+      font-size: 16px; font-weight: 700; color: #252537;
+      margin-bottom: 4px;
+    }
+    .inst-option {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 14px 0;
+      border-bottom: 1px solid #eeeff8;
+      cursor: pointer;
+    }
+    .inst-option:last-child { border-bottom: none; }
+    .radio {
+      width: 22px; height: 22px;
+      border-radius: 50%;
+      border: 2px solid #b5b9d4;
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+      transition: border-color .15s;
+    }
+    .radio.checked { border-color: #4850e5; }
+    .radio.checked::after {
+      content: '';
+      width: 11px; height: 11px;
+      border-radius: 50%;
+      background: #4850e5;
+    }
+    .inst-label { flex: 1; font-size: 14px; color: #252537; }
+    .inst-amount { font-size: 14px; color: #252537; white-space: nowrap; }
+
+    /* ── SUGGESTION BOX ── */
+    .suggestion {
+      display: flex;
+      gap: 10px;
+      align-items: flex-start;
+      border: 1px solid #dde0f5;
+      border-radius: 12px;
+      padding: 12px;
+      background: #f8f9ff;
+      margin: 10px 16px 16px;
+      flex-shrink: 0;
+    }
+    .sug-icon {
+      width: 22px; height: 22px;
+      border-radius: 50%;
+      background: #e0e4ff;
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+      color: #4850e5; font-size: 12px; font-weight: 700;
+    }
+    .sug-text { font-size: 12px; color: #646587; line-height: 1.5; }
+
+    /* ── TOTAL BAR ── */
+    .total-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 0 0 10px;
+    }
+    .total-label { font-size: 14px; color: #252537; }
+    .total-value { font-size: 16px; font-weight: 700; color: #252537; }
+
+    /* ── MODAL ── */
+    .overlay {
+      position: absolute;
+      inset: 0;
+      background: rgba(37,37,55,.55);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 300;
+      padding: 20px;
+      animation: fadeIn .2s;
+    }
+    @keyframes fadeIn { from{opacity:0} to{opacity:1} }
+    .modal {
+      background: #fff;
+      border-radius: 20px;
+      padding: 24px;
+      width: 100%;
+      animation: slideUp .25s ease;
+    }
+    @keyframes slideUp { from{transform:translateY(20px)} to{transform:translateY(0)} }
+    .modal-hdr { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 16px; }
+    .modal-title { font-size: 20px; font-weight: 700; color: #252537; line-height: 1.3; flex: 1; padding-right: 8px; }
+    .modal-close { background: none; border: none; cursor: pointer; color: #646587; font-size: 20px; }
+    .modal-p { font-size: 14px; color: #646587; line-height: 1.6; margin-bottom: 10px; }
+
+    /* ── REVIEW SCREEN ── */
+    .review-body { flex: 1; overflow-y: auto; padding: 0 16px 8px; }
+    .amount-hero {
+      background: #f5f6ff;
+      border-radius: 16px;
+      padding: 20px 16px;
+      margin-bottom: 16px;
+    }
+    .amount-hero-val { font-size: 36px; font-weight: 700; color: #252537; }
+    .amount-hero-sub { font-size: 14px; color: #646587; margin-top: 4px; }
+    .detail-block { margin-bottom: 16px; }
+    .detail-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      padding: 7px 0;
+      border-bottom: 1px solid #f0f0f8;
+    }
+    .detail-row:last-child { border-bottom: none; }
+    .detail-key { font-size: 14px; color: #252537; }
+    .detail-val { font-size: 14px; font-weight: 600; color: #252537; text-align: right; }
+    .detail-sub { font-size: 11px; color: #646587; }
+    .highlight-row {
+      background: #f5f6ff;
+      border-radius: 8px;
+      padding: 10px 12px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin: 8px 0;
+    }
+    .highlight-key { font-size: 14px; font-weight: 600; color: #252537; }
+    .highlight-val { font-size: 15px; font-weight: 700; color: #252537; }
+    .due-block { margin: 12px 0; }
+    .due-title { font-size: 14px; font-weight: 700; color: #252537; }
+    .due-sub { font-size: 12px; color: #646587; margin-top: 3px; }
+    .rates-block { padding: 12px 0; border-top: 1px solid #f0f0f8; border-bottom: 1px solid #f0f0f8; margin: 8px 0; }
+    .rate-row { display: flex; justify-content: space-between; padding: 4px 0; }
+    .rate-key { font-size: 12px; color: #646587; }
+    .rate-val { font-size: 12px; color: #646587; }
+    .disclaimer { font-size: 11px; color: #646587; line-height: 1.6; margin: 12px 0; }
+    .toc-title { font-size: 12px; font-weight: 700; color: #252537; margin-bottom: 6px; }
+    .toc-text { font-size: 11px; color: #646587; line-height: 1.6; }
+    .link-text { color: #434ce4; font-weight: 600; text-decoration: underline; }
+
+    /* ── CONGRATS ── */
+    .congrats-wrap {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      padding: 32px 24px;
+    }
+    .congrats-check {
+      width: 72px; height: 72px;
+      border-radius: 50%;
+      background: #00a650;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 28px;
+    }
+    .congrats-title { font-size: 30px; font-weight: 700; color: #252537; line-height: 1.2; margin-bottom: 12px; }
+    .congrats-desc { font-size: 16px; color: #646587; line-height: 1.6; }
+  </style>
+</head>
+<body>
+
+<div class="phone-wrap">
+  <div class="phone" id="app"></div>
+</div>
+
+<script>
+/* ═══════════════════════════════════════════════════
+   STATE
+═══════════════════════════════════════════════════ */
+const S = {
+  screen: 1,
+  loanType: null,       // 'personal' | 'dinero'
+  amountStr: '',        // raw digits
+  amountErr: null,      // null | 'low' | 'high'
+  gracePeriod: null,    // 1 | 2 | 3
+  installments: null,   // 3 | 6 | 9 | 12
+  showModal: false,
+  snackbar: null,       // string | null
+  _snackTimer: null,
+};
+
+/* ═══════════════════════════════════════════════════
+   HELPERS
+═══════════════════════════════════════════════════ */
+const fmt3 = (n) => Math.round(n).toLocaleString('es-AR').replace(/,/g,'.');
+const fmtMoney = (n) => {
+  const r = Math.round(n * 100) / 100;
+  const [int, dec] = r.toFixed(2).split('.');
+  return `$ ${parseInt(int).toLocaleString('es-AR').replace(/,/g,'.')},${dec}`;
+};
+const fmtInt = (n) => `$ ${fmt3(n)}`;
+
+const PMT = (P, n, r = 0.025) => {
+  const f = Math.pow(1 + r, n);
+  return P * r * f / (f - 1);
+};
+
+const getInstallmentOptions = () => {
+  const amount = parseInt(S.amountStr) || 12000;
+  const grace  = S.gracePeriod || 0;
+  const base   = amount * Math.pow(1.025, grace);
+  return [12, 9, 6, 3].map(n => ({ n, pmt: PMT(base, n) }));
+};
+
+const getTotal = () => {
+  if (!S.installments) return 0;
+  return getInstallmentOptions().find(o => o.n === S.installments).pmt * S.installments;
+};
+
+const showSnack = (msg) => {
+  S.snackbar = msg;
+  if (S._snackTimer) clearTimeout(S._snackTimer);
+  S._snackTimer = setTimeout(() => { S.snackbar = null; render(); }, 3500);
+};
+
+/* ═══════════════════════════════════════════════════
+   ACTIONS
+═══════════════════════════════════════════════════ */
+window.goTo = (n) => { S.screen = n; render(); };
+
+window.selectLoan = (t) => { S.loanType = t; render(); };
+
+window.pressKey = (k) => {
+  if (k === 'del') {
+    S.amountStr = S.amountStr.slice(0, -1);
+  } else {
+    if (S.amountStr.length < 6) S.amountStr += k;
+  }
+  const v = parseInt(S.amountStr) || 0;
+  if (!S.amountStr || v === 0) S.amountErr = null;
+  else if (v < 15)    S.amountErr = 'low';
+  else if (v > 50000) S.amountErr = 'high';
+  else S.amountErr = null;
+  render();
+};
+
+window.tryContinueAmount = () => {
+  const v = parseInt(S.amountStr) || 0;
+  if (v === 0) { showSnack('Para continuar ingresa un monto.'); render(); return; }
+  if (v >= 15 && v <= 50000) { goTo(7); }
+};
+
+window.selectGrace = (g) => {
+  S.gracePeriod = (S.gracePeriod === g) ? null : g;
+  S.installments = null;
+  render();
+};
+
+window.selectInstallment = (n) => {
+  S.installments = n;
+  render();
+};
+
+window.tryContinueInstallments = () => {
+  if (!S.installments) {
+    showSnack('Para continuar elige la cantidad de cuotas para devolver el Préstamo Personal.');
+    render(); return;
+  }
+  goTo(11);
+};
+
+window.openModal = () => { S.showModal = true; render(); };
+window.closeModal = () => { S.showModal = false; render(); };
+
+window.resetFlow = () => {
+  Object.assign(S, {
+    screen: 1, loanType: null, amountStr: '',
+    amountErr: null, gracePeriod: null, installments: null,
+    showModal: false, snackbar: null,
+  });
+  render();
+};
+
+/* ═══════════════════════════════════════════════════
+   PARTIALS
+═══════════════════════════════════════════════════ */
+const statusBar = () => `
+  <div class="status-bar">
+    <span class="status-time">12:30</span>
+    <div class="status-icons">
+      <svg width="16" height="11" viewBox="0 0 20 14" fill="#252537">
+        <path d="M10 3.5 C7 3.5 4.3 4.6 2.3 6.5L0 4.2C2.7 1.6 6.1 0 10 0s7.3 1.6 10 4.2L17.7 6.5C15.7 4.6 13 3.5 10 3.5z"/>
+        <path d="M10 7C8.1 7 6.4 7.8 5.2 9L2.9 6.7C4.8 4.9 7.3 3.8 10 3.8s5.2 1.1 7.1 2.9L14.8 9C13.6 7.8 11.9 7 10 7z"/>
+        <circle cx="10" cy="13" r="2"/>
+      </svg>
+      <svg width="16" height="12" viewBox="0 0 24 16" fill="#252537">
+        <rect x="0"  y="10" width="4" height="6" rx="1"/>
+        <rect x="5"  y="7"  width="4" height="9" rx="1"/>
+        <rect x="10" y="4"  width="4" height="12" rx="1"/>
+        <rect x="15" y="1"  width="4" height="15" rx="1"/>
+      </svg>
+      <svg width="24" height="12" viewBox="0 0 24 12" fill="none">
+        <rect x="0" y="1" width="21" height="10" rx="2" stroke="#252537" stroke-width="1.5"/>
+        <rect x="1.5" y="2.5" width="16" height="7" rx="1" fill="#252537"/>
+        <path d="M22 4v4a2 2 0 0 0 0-4z" fill="#252537"/>
+      </svg>
+    </div>
+  </div>`;
+
+const backBtn = (target) => `
+  <button class="icon-btn" onclick="goTo(${target})">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#4850e5" stroke-width="2.5" stroke-linecap="round">
+      <path d="M15 18l-6-6 6-6"/>
+    </svg>
+  </button>`;
+
+const helpBtn = () => `
+  <button class="icon-btn" onclick="openModal()">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#4850e5" stroke-width="2" stroke-linecap="round">
+      <circle cx="12" cy="12" r="10"/>
+      <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/>
+      <circle cx="12" cy="17" r=".5" fill="#4850e5"/>
+    </svg>
+  </button>`;
+
+const reqSummary = () => {
+  const v = parseInt(S.amountStr) || 12000;
+  return `
+    <div class="req-summary">
+      <span>Estás pidiendo</span>
+      <span class="req-amount" style="margin-left:5px;">${fmtInt(v)}</span>
+      <button class="req-edit" onclick="goTo(2)">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#4850e5" stroke-width="2" stroke-linecap="round">
+          <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+          <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+        </svg>
+      </button>
+    </div>`;
+};
+
+const keyboard = () => `
+  <div class="keyboard">
+    ${['1','2','3','4','5','6','7','8','9','dec','0','del'].map(k => {
+      if (k === 'dec') return `<button class="key key-dark" onclick="pressKey(',')"><span style="font-size:20px">,</span></button>`;
+      if (k === 'del') return `<button class="key key-del" onclick="pressKey('del')">
+        <svg width="22" height="16" viewBox="0 0 26 20" fill="none" stroke="#252537" stroke-width="2" stroke-linecap="round">
+          <path d="M9 3H23a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H9l-7-7z"/>
+          <line x1="13" y1="8" x2="19" y2="14"/><line x1="19" y1="8" x2="13" y2="14"/>
+        </svg>
+      </button>`;
+      return `<button class="key" onclick="pressKey('${k}')">${k}</button>`;
+    }).join('')}
+  </div>`;
+
+const snackbar = (pos = 'bottom:10px') => S.snackbar ? `
+  <div class="snackbar" style="${pos}">
+    <div class="snack-icon">
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="white">
+        <path d="M12 2a10 10 0 1 0 0 20A10 10 0 0 0 12 2zm1 14h-2v-5h2v5zm0-7h-2V7h2v2z"/>
+      </svg>
+    </div>
+    <span class="snack-text">${S.snackbar}</span>
+  </div>` : '';
+
+const tooltipModal = () => `
+  <div class="overlay" onclick="if(event.target===this)closeModal()">
+    <div class="modal">
+      <div class="modal-hdr">
+        <div class="modal-title">¿De qué dependen las cuotas disponibles?</div>
+        <button class="modal-close" onclick="closeModal()">✕</button>
+      </div>
+      <p class="modal-p">Las cuotas varían de acuerdo a la cantidad de dinero que pidas y en función de un análisis crediticio.</p>
+      <p class="modal-p">Cuando ingresas el monto del préstamo te mostramos las opciones disponibles para esa cantidad.</p>
+      <button class="btn btn-primary" onclick="closeModal()" style="margin-top:8px;">Entendido</button>
+    </div>
+  </div>`;
+
+/* ═══════════════════════════════════════════════════
+   SCREENS
+═══════════════════════════════════════════════════ */
+const screen1 = () => {
+  const btnDisabled = !S.loanType;
+  return `
+    <div class="screen active" id="s1">
+      ${statusBar()}
+      <div class="hdr">
+        <button class="icon-btn ghost"></button>
+        <div class="hdr-center"></div>
+        <button class="icon-btn ghost"></button>
+      </div>
+      <div class="page-title">Selecciona el crédito que quieres</div>
+
+      <div style="flex:1;overflow-y:auto;padding:0 16px;display:flex;flex-direction:column;gap:14px;">
+        <!-- Préstamo Personal -->
+        <div class="card ${S.loanType==='personal'?'selected':''}" onclick="selectLoan('personal')">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
+            <span class="card-title">Préstamo Personal</span>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#252537" stroke-width="2.5" stroke-linecap="round"><path d="M9 18l6-6-6-6"/></svg>
+          </div>
+          <div class="card-amount">$ 10.000 disponibles</div>
+          <div class="card-feature"><span class="check-icon">✓</span><span>Hasta en 24 cuotas.</span></div>
+          <div class="card-feature"><span class="check-icon">✓</span><span>Usa el límite de tu Línea de Crédito.</span></div>
+        </div>
+
+        <!-- Dinero Extra -->
+        <div class="card ${S.loanType==='dinero'?'selected':''}" onclick="selectLoan('dinero')">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
+            <div style="display:flex;align-items:center;">
+              <span class="card-title">Dinero Extra</span>
+              <span class="badge-new">Nueva opción</span>
+            </div>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#252537" stroke-width="2.5" stroke-linecap="round"><path d="M9 18l6-6-6-6"/></svg>
+          </div>
+          <div class="card-amount">$ 10.000 disponibles</div>
+          <div class="card-feature"><span class="check-icon">✓</span><span>En un pago en hasta 28 días.</span></div>
+          <div class="card-feature"><span class="check-icon">✓</span><span>Es un monto extra a tu Línea de Crédito.</span></div>
+        </div>
+      </div>
+
+      <div class="action-footer">
+        <button class="btn btn-primary" ${btnDisabled?'disabled':''} onclick="goTo(2)">Continuar</button>
+      </div>
+    </div>`;
+};
+
+const screen2 = () => {
+  const v = parseInt(S.amountStr) || 0;
+  const isValid = v >= 15 && v <= 50000;
+  const filled  = v > 0;
+  const display = filled ? fmt3(v) : '0';
+
+  let helperHtml = `<div class="helper">Puedes pedir hasta $ 50.000</div>`;
+  if (S.amountErr === 'low')
+    helperHtml = `<div class="helper error"><div class="err-icon"></div>Ingresa un monto mayor a $ 15</div>`;
+  if (S.amountErr === 'high')
+    helperHtml = `<div class="helper error"><div class="err-icon"></div>Ingresa un monto menor a $ 50.000</div>`;
+
+  return `
+    <div class="screen active" id="s2" style="position:relative;">
+      ${statusBar()}
+      <div class="hdr">${backBtn(1)}<div class="hdr-center"></div><div style="width:36px;"></div></div>
+      <div class="page-title">Ingresa el monto</div>
+
+      <div class="amount-area">
+        <div class="amount-row">
+          <span class="amount-currency ${filled?'filled':''}">$</span>
+          <span class="amount-value ${filled?'':'amount-placeholder'}">${display}</span>
+          <span class="amount-cursor"></span>
+        </div>
+        ${helperHtml}
+      </div>
+
+      <div style="padding:0 16px 12px;">
+        <button class="btn btn-primary" ${isValid?'':'disabled'} onclick="tryContinueAmount()">Continuar</button>
+      </div>
+      ${keyboard()}
+      ${snackbar('bottom:260px')}
+    </div>`;
+};
+
+const screen7 = () => {
+  const opts  = getInstallmentOptions();
+  const total = getTotal();
+  const hasSel = !!S.installments;
+
+  const graceHtml = `
+    <div class="grace-section">
+      <div class="grace-label">Carência de pagamento</div>
+      <div class="grace-cards">
+        ${[1,2,3].map(m => `
+          <div class="grace-card ${S.gracePeriod===m?'selected':''}" onclick="selectGrace(${m})">
+            <div class="grace-card-num">${m}</div>
+            <div class="grace-card-sub">m${m===1?'ês':'eses'}</div>
+          </div>`).join('')}
+      </div>
+      <div class="grace-hint">${S.gracePeriod ? `Carência de ${S.gracePeriod} ${S.gracePeriod===1?'mês':'meses'} aplicada • parcelas ajustadas` : 'Seleciona a carência para ajustar as parcelas'}</div>
+    </div>`;
+
+  const listHtml = opts.map(({n, pmt}) => `
+    <div class="inst-option" onclick="selectInstallment(${n})">
+      <div class="radio ${S.installments===n?'checked':''}"></div>
+      <span class="inst-label">${n} cuotas de</span>
+      <span class="inst-amount">${fmtMoney(pmt)}</span>
+    </div>`).join('');
+
+  return `
+    <div class="screen active" id="s7" style="position:relative;">
+      ${statusBar()}
+      <div class="hdr">${backBtn(2)}${helpBtn()}</div>
+      <div class="page-title">Elige la cantidad de cuotas</div>
+      ${reqSummary()}
+
+      ${graceHtml}
+
+      <div class="installments-wrap">
+        <div class="inst-section-title">Opciones disponibles</div>
+        ${listHtml}
+      </div>
+
+      <div class="suggestion">
+        <div class="sug-icon">i</div>
+        <span class="sug-text">Para devolverlo en menos cuotas solicita un monto inferior a $ 7.000.</span>
+      </div>
+
+      <div class="action-footer">
+        ${hasSel ? `
+          <div class="total-bar">
+            <span class="total-label">En total devolves</span>
+            <span class="total-value">${fmtMoney(total)}</span>
+          </div>` : ''}
+        <button class="btn btn-primary" ${hasSel?'':'disabled'} onclick="tryContinueInstallments()">
+          Revisar detalle del crédito
+        </button>
+      </div>
+
+      ${snackbar('bottom:75px')}
+      ${S.showModal ? tooltipModal() : ''}
+    </div>`;
+};
+
+const screen11 = () => {
+  const v    = parseInt(S.amountStr) || 12000;
+  const opts = getInstallmentOptions();
+  const sel  = opts.find(o => o.n === S.installments);
+  const pmt  = sel ? sel.pmt : 0;
+  const total = pmt * S.installments;
+  const grace = S.gracePeriod || 0;
+
+  // Due date
+  const d = new Date();
+  d.setMonth(d.getMonth() + 1 + grace);
+  const ms = ['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'];
+  const dueDate = `${d.getDate()} de ${ms[d.getMonth()]}`;
+
+  return `
+    <div class="screen active" id="s11">
+      ${statusBar()}
+      <div class="hdr">${backBtn(7)}<div class="hdr-center"></div><div style="width:36px;"></div></div>
+      <div class="page-title" style="font-size:22px;">Confira se está tudo certo</div>
+
+      <div class="review-body">
+        <div class="amount-hero">
+          <div class="amount-hero-val">${fmtInt(v)}</div>
+          <div class="amount-hero-sub">na sua conta Mercado Pago</div>
+        </div>
+
+        <div class="detail-block">
+          <div class="detail-row">
+            <span class="detail-key">Você vai pagar</span>
+            <div style="text-align:right;">
+              <div class="detail-val">${S.installments}x de ${fmtMoney(pmt)}</div>
+              <div class="detail-sub">parcelas fixas</div>
+            </div>
+          </div>
+          <div class="highlight-row">
+            <span class="highlight-key">Total a pagar</span>
+            <span class="highlight-val">${fmtMoney(total)}</span>
+          </div>
+          <div class="due-block">
+            <div class="due-title">A primeira parcela vence em ${dueDate}</div>
+            <div class="due-sub">As seguintes no dia 10 de cada mês.</div>
+          </div>
+        </div>
+
+        <div class="rates-block">
+          <div class="rate-row"><span class="rate-key">Juros mensais</span><span class="rate-val">2,50%</span></div>
+          <div class="rate-row"><span class="rate-key">Juros anuais</span><span class="rate-val">35,04%</span></div>
+          <div class="rate-row"><span class="rate-key">Custo Efetivo Anual</span><span class="rate-val">40,68%</span></div>
+          ${grace > 0 ? `<div class="rate-row"><span class="rate-key">Carência</span><span class="rate-val">${grace} ${grace===1?'mês':'meses'}</span></div>` : ''}
+        </div>
+
+        <p class="disclaimer">O Mercado Pago atua como correspondente bancário de Instituições Financeiras Parceiras, e a oferta pode ser alterada a qualquer momento a critério dessas Instituições.</p>
+
+        <p class="toc-title">Ao pressionar "Pedir Empréstimo Pessoal", você:</p>
+        <p class="toc-text">Aceita os <span class="link-text">Termos e Condições Gerais</span>, declara assinada a <span class="link-text">Cédula de Crédito Bancário</span> e solicita o empréstimo. Autoriza o débito automático na conta vinculada ao seu CPF para o pagamento deste empréstimo, nas datas de vencimento.</p>
+      </div>
+
+      <div class="action-footer">
+        <button class="btn btn-primary" onclick="goTo(12)">Pedir Empréstimo Pessoal</button>
+      </div>
+    </div>`;
+};
+
+const screen12 = () => {
+  const v = parseInt(S.amountStr) || 12000;
+  return `
+    <div class="screen active" id="s12">
+      <div style="display:flex;justify-content:flex-end;padding:16px 16px 0;">
+        <button class="icon-btn" onclick="resetFlow()">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#646587" stroke-width="2.5" stroke-linecap="round">
+            <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+          </svg>
+        </button>
+      </div>
+      <div class="congrats-wrap">
+        <div class="congrats-check">
+          <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="20 6 9 17 4 12"/>
+          </svg>
+        </div>
+        <div class="congrats-title">Recibiste ${fmtInt(v)}</div>
+        <p class="congrats-desc">El monto ya esta disponible en tu cuenta de Mercado Pago.</p>
+      </div>
+      <div style="padding:0 24px 40px;">
+        <button class="btn btn-ghost" onclick="resetFlow()">Ir al inicio</button>
+      </div>
+    </div>`;
+};
+
+/* ═══════════════════════════════════════════════════
+   RENDER
+═══════════════════════════════════════════════════ */
+const SCREENS = { 1: screen1, 2: screen2, 7: screen7, 11: screen11, 12: screen12 };
+
+function render() {
+  const fn = SCREENS[S.screen] || screen1;
+  document.getElementById('app').innerHTML = fn();
+}
+
+render();
+</script>
+</body>
+</html>
