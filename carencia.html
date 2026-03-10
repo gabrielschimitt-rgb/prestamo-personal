@@ -135,7 +135,7 @@
 
     /* ── Carência option cards ── */
     .carencia-grid {
-      display: flex; gap: 8px;
+      display: flex; gap: 6px;
       padding: 0 16px 16px;
     }
 
@@ -143,8 +143,8 @@
       flex: 1;
       background: #e5e6ef;
       border: 2px solid #b8bace;
-      border-radius: 16px;
-      padding: 16px 8px 14px;
+      border-radius: 14px;
+      padding: 14px 4px 12px;
       cursor: pointer; text-align: center;
       transition: all 0.2s ease;
       display: flex; flex-direction: column; align-items: center; gap: 3px;
@@ -300,7 +300,7 @@
 
   <!-- Title -->
   <div class="page-title">
-    <h1>Elige cómo pagar de vuelta tu crédito</h1>
+    <h1>Personaliza el crédito</h1>
   </div>
 
   <div class="amount-row">
@@ -337,9 +337,14 @@
 
       <!-- Body (expanded view) – visible initially -->
       <div class="section-body open" id="body-carencia">
-        <div class="section-inner-title">Elige cuándo quieres empezar a pagar</div>
+        <div class="section-inner-title">Elige cuándo empezar a pagar</div>
         <div class="carencia-grid">
-          <div class="carencia-card selected" data-months="1" onclick="selectCarencia(1)">
+          <div class="carencia-card selected" data-months="0" onclick="selectCarencia(0)">
+            <span class="card-months">0</span>
+            <span class="card-label">meses</span>
+            <span class="card-badge">Sin cargo</span>
+          </div>
+          <div class="carencia-card" data-months="1" onclick="selectCarencia(1)">
             <span class="card-months">1</span>
             <span class="card-label">mes</span>
             <span class="card-badge">+0,8%</span>
@@ -377,7 +382,7 @@
 
       <!-- Body (expanded view) – hidden initially -->
       <div class="section-body closed" id="body-parcelas" style="max-height:0">
-        <div class="section-inner-title">Elige las cuotas</div>
+        <div class="section-inner-title">Selecciona la cantidad de cuotas</div>
 
         <div class="parcelas-list">
           <div class="parcela-item" onclick="selectParcela(6)">
@@ -444,7 +449,7 @@
     48: { display: '$ 19.930<sup>56</sup>' },
   };
 
-  let selectedCarencia = 1;
+  let selectedCarencia = 0;
   let selectedParcela  = 12;
   let carenciaLocked   = false;
   let parcelasOpen     = false;
@@ -462,7 +467,7 @@
     carenciaLocked = true;
 
     // update collapsed label
-    const labels = { 1: '1 mes', 2: '2 meses', 3: '3 meses' };
+    const labels = { 0: 'Sin carencia', 1: '1 mes', 2: '2 meses', 3: '3 meses' };
     document.getElementById('carencia-label-collapsed').textContent = labels[selectedCarencia];
 
     // collapse carência body
