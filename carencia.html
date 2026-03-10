@@ -340,20 +340,20 @@
         <div class="section-inner-title">Período de carência</div>
 
         <div class="carencia-grid">
-          <div class="carencia-card" data-months="0" onclick="selectCarencia(0)">
-            <span class="card-months">0</span>
-            <span class="card-label">meses</span>
-            <span class="card-badge">Sem juros</span>
-          </div>
-          <div class="carencia-card" data-months="1" onclick="selectCarencia(1)">
+          <div class="carencia-card selected" data-months="1" onclick="selectCarencia(1)">
             <span class="card-months">1</span>
             <span class="card-label">mês</span>
             <span class="card-badge">+0,8%</span>
           </div>
-          <div class="carencia-card selected" data-months="2" onclick="selectCarencia(2)">
+          <div class="carencia-card" data-months="2" onclick="selectCarencia(2)">
             <span class="card-months">2</span>
             <span class="card-label">meses</span>
             <span class="card-badge">+1,5%</span>
+          </div>
+          <div class="carencia-card" data-months="3" onclick="selectCarencia(3)">
+            <span class="card-months">3</span>
+            <span class="card-label">meses</span>
+            <span class="card-badge">+2,2%</span>
           </div>
         </div>
 
@@ -456,7 +456,7 @@
     48: { display: '$ 19.930<sup>56</sup>' },
   };
 
-  let selectedCarencia = 2;
+  let selectedCarencia = 1;
   let selectedParcela  = 12;
   let carenciaLocked   = false;
   let parcelasOpen     = false;
@@ -474,7 +474,7 @@
     carenciaLocked = true;
 
     // update collapsed label
-    const labels = { 0: 'Sem carência', 1: '1 mês', 2: '2 meses' };
+    const labels = { 1: '1 mês', 2: '2 meses', 3: '3 meses' };
     document.getElementById('carencia-label-collapsed').textContent = labels[selectedCarencia];
 
     // collapse carência body
