@@ -1,0 +1,555 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Escolha como pagar de volta</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+
+    body {
+      font-family: -apple-system, 'Inter', sans-serif;
+      background: #eaeaf2;
+      display: flex;
+      justify-content: center;
+      align-items: flex-start;
+      min-height: 100vh;
+      padding: 32px 16px;
+    }
+
+    .phone {
+      width: 375px;
+      min-height: 812px;
+      background: #fff;
+      border-radius: 44px;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      box-shadow: 0 24px 80px rgba(0,0,0,0.18);
+      position: relative;
+    }
+
+    /* ── Status bar ── */
+    .status-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 14px 24px 8px;
+      font-size: 13px;
+      font-weight: 600;
+      color: #252537;
+      flex-shrink: 0;
+    }
+
+    .status-icons { display: flex; gap: 6px; align-items: center; }
+
+    /* ── Nav header ── */
+    .nav-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 4px 16px 4px;
+      flex-shrink: 0;
+    }
+
+    .icon-btn {
+      width: 40px; height: 40px;
+      background: #eef2ff;
+      border-radius: 12px;
+      display: flex; align-items: center; justify-content: center;
+      cursor: pointer; border: none; flex-shrink: 0;
+      transition: background 0.15s;
+    }
+    .icon-btn:active { background: #dde4ff; }
+
+    /* ── Titles ── */
+    .page-title {
+      padding: 12px 16px 4px;
+      flex-shrink: 0;
+    }
+    .page-title h1 {
+      font-size: 24px;
+      font-weight: 800;
+      color: #1a1a2e;
+      line-height: 1.22;
+      letter-spacing: -0.3px;
+    }
+
+    .amount-row {
+      display: flex; align-items: center; gap: 6px;
+      padding: 8px 16px 16px;
+      font-size: 14px; color: #555672; flex-shrink: 0;
+    }
+    .amount-row strong { font-size: 16px; font-weight: 700; color: #1a1a2e; }
+
+    /* ── Scrollable content ── */
+    .content {
+      flex: 1;
+      overflow-y: auto;
+      padding: 0 12px 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      -webkit-overflow-scrolling: touch;
+    }
+
+    /* ── Section card ── */
+    .section-card {
+      background: #f4f5f9;
+      border-radius: 20px;
+      overflow: hidden;
+    }
+
+    /* ── Collapsed summary row ── */
+    .section-summary {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 16px 20px;
+      cursor: pointer;
+      user-select: none;
+    }
+    .summary-left { display: flex; flex-direction: column; gap: 3px; }
+    .summary-eyebrow { font-size: 11px; font-weight: 500; color: #9496b8; text-transform: uppercase; letter-spacing: 0.4px; }
+    .summary-value { display: flex; align-items: center; gap: 8px; font-size: 16px; font-weight: 700; color: #1a1a2e; }
+    .check-circle {
+      width: 20px; height: 20px;
+      background: #00a650; border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+    }
+    .section-chevron { transition: transform 0.3s ease; color: #434ce4; }
+    .section-chevron.rotated { transform: rotate(180deg); }
+    .locked-hint { font-size: 13px; color: #b0b2cc; font-weight: 400; }
+
+    /* ── Section expanded body ── */
+    .section-body {
+      overflow: hidden;
+      transition: max-height 0.4s cubic-bezier(0.4,0,0.2,1), opacity 0.3s ease;
+    }
+    .section-body.open { opacity: 1; }
+    .section-body.closed { max-height: 0 !important; opacity: 0; }
+
+    .section-inner-title {
+      font-size: 16px; font-weight: 700; color: #1a1a2e;
+      padding: 20px 20px 16px;
+    }
+
+    /* ── Carência option cards ── */
+    .carencia-grid {
+      display: flex; gap: 8px;
+      padding: 0 16px 16px;
+    }
+
+    .carencia-card {
+      flex: 1;
+      background: #e5e6ef;
+      border: 2px solid #b8bace;
+      border-radius: 16px;
+      padding: 16px 8px 14px;
+      cursor: pointer; text-align: center;
+      transition: all 0.2s ease;
+      display: flex; flex-direction: column; align-items: center; gap: 3px;
+      user-select: none;
+    }
+    .carencia-card:active { transform: scale(0.97); }
+    .carencia-card.selected {
+      border-color: #434ce4;
+      background: #fff;
+      box-shadow: 0 6px 20px rgba(67,76,228,0.15);
+    }
+
+    .card-months { font-size: 26px; font-weight: 800; color: #1a1a2e; line-height: 1; }
+    .card-label { font-size: 11px; color: #8082a0; font-weight: 400; }
+    .card-badge {
+      margin-top: 8px;
+      font-size: 10px; font-weight: 700;
+      background: #eef2ff; color: #434ce4;
+      border-radius: 6px; padding: 3px 7px;
+      letter-spacing: 0.2px;
+    }
+    .carencia-card.selected .card-badge { background: #434ce4; color: #fff; }
+
+    /* ── Info box ── */
+    .info-box {
+      margin: 0 16px 16px;
+      background: #eef2ff;
+      border-radius: 12px;
+      padding: 12px 14px;
+      font-size: 12px; line-height: 1.5; color: #434ce4;
+    }
+    .info-box strong { font-weight: 700; }
+
+    /* ── Continuar button ── */
+    .btn-continuar {
+      display: block;
+      width: calc(100% - 32px);
+      margin: 0 16px 20px;
+      height: 48px;
+      background: #434ce4; color: #fff;
+      border: none; border-radius: 12px;
+      font-size: 14px; font-weight: 700;
+      cursor: pointer; transition: background 0.2s, transform 0.1s;
+    }
+    .btn-continuar:active { background: #3039c4; transform: scale(0.99); }
+
+    /* ── Parcelas list ── */
+    .parcelas-list { padding: 0 16px 16px; }
+
+    .parcela-item {
+      display: flex; align-items: center; gap: 14px;
+      padding: 14px 0;
+      border-bottom: 1px solid #e5e6ef;
+      cursor: pointer; user-select: none;
+      transition: background 0.1s;
+    }
+    .parcela-item:last-child { border-bottom: none; }
+
+    .radio-dot {
+      width: 22px; height: 22px;
+      border-radius: 50%;
+      border: 2px solid #c0c2d8;
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0; transition: border-color 0.2s;
+    }
+    .radio-dot.checked { border-color: #434ce4; }
+    .radio-dot.checked::after {
+      content: ''; width: 11px; height: 11px;
+      border-radius: 50%; background: #434ce4;
+    }
+
+    .parcela-info { flex: 1; }
+    .parcela-main { font-size: 16px; font-weight: 700; color: #1a1a2e; }
+    .parcela-main em { font-style: normal; font-weight: 400; font-size: 14px; color: #7072a0; }
+    .parcela-sub { font-size: 12px; color: #9496b8; margin-top: 2px; }
+
+    .parcela-badge {
+      font-size: 10px; font-weight: 700;
+      background: #e6f5ec; color: #00a650;
+      border-radius: 6px; padding: 3px 8px;
+      white-space: nowrap;
+    }
+
+    /* ── Bottom action bar ── */
+    .action-bar {
+      padding: 14px 16px 20px;
+      background: #fff;
+      box-shadow: 0 -2px 12px rgba(40,40,52,0.08);
+      flex-shrink: 0;
+    }
+    .total-row {
+      display: flex; justify-content: space-between; align-items: baseline;
+      margin-bottom: 14px; font-size: 14px; color: #555672;
+    }
+    .total-amount { font-size: 18px; font-weight: 800; color: #1a1a2e; }
+    .total-amount sup { font-size: 11px; vertical-align: super; }
+
+    .btn-revisar {
+      width: 100%; height: 50px;
+      background: #434ce4; color: #fff;
+      border: none; border-radius: 12px;
+      font-size: 15px; font-weight: 700;
+      cursor: pointer; transition: background 0.2s;
+    }
+    .btn-revisar:active { background: #3039c4; }
+  </style>
+</head>
+<body>
+
+<div class="phone">
+
+  <!-- Status bar -->
+  <div class="status-bar">
+    <span>12:30</span>
+    <div class="status-icons">
+      <!-- Signal bars -->
+      <svg width="17" height="12" viewBox="0 0 17 12" fill="none">
+        <rect x="0" y="7" width="3" height="5" rx="1" fill="#252537"/>
+        <rect x="4.5" y="4.5" width="3" height="7.5" rx="1" fill="#252537"/>
+        <rect x="9" y="2" width="3" height="10" rx="1" fill="#252537"/>
+        <rect x="13.5" y="0" width="3" height="12" rx="1" fill="#252537" opacity="0.25"/>
+      </svg>
+      <!-- WiFi -->
+      <svg width="16" height="12" viewBox="0 0 16 12" fill="none">
+        <path d="M8 9.5a1.5 1.5 0 1 1 0 3 1.5 1.5 0 0 1 0-3z" fill="#252537"/>
+        <path d="M3.76 6.76A6 6 0 0 1 12.24 6.76L13.5 5.5A7.75 7.75 0 0 0 2.5 5.5l1.26 1.26z" fill="#252537"/>
+        <path d="M1.27 4.27A10 10 0 0 1 14.73 4.27L16 3A11.75 11.75 0 0 0 0 3l1.27 1.27z" fill="#252537" opacity="0.3"/>
+      </svg>
+      <!-- Battery -->
+      <svg width="26" height="12" viewBox="0 0 26 12" fill="none">
+        <rect x="0.5" y="0.5" width="22" height="11" rx="3.5" stroke="#252537" stroke-opacity="0.35"/>
+        <rect x="2" y="2" width="17" height="8" rx="2" fill="#252537"/>
+        <path d="M23.5 4.5v3c.8-.3 1.5-1 1.5-1.5s-.7-1.2-1.5-1.5z" fill="#252537" opacity="0.4"/>
+      </svg>
+    </div>
+  </div>
+
+  <!-- Nav -->
+  <div class="nav-header">
+    <button class="icon-btn" aria-label="Voltar">
+      <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+        <path d="M12.5 5L7.5 10L12.5 15" stroke="#434ce4" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+    </button>
+    <button class="icon-btn" aria-label="Ajuda">
+      <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+        <circle cx="10" cy="10" r="7.5" stroke="#434ce4" stroke-width="1.6"/>
+        <circle cx="10" cy="14" r="0.8" fill="#434ce4"/>
+        <path d="M8.2 7.8C8.2 6.8 9 6 10 6s1.8.8 1.8 1.8c0 .8-.5 1.3-1 1.7-.5.4-.8.8-.8 1.5" stroke="#434ce4" stroke-width="1.5" stroke-linecap="round"/>
+      </svg>
+    </button>
+  </div>
+
+  <!-- Title -->
+  <div class="page-title">
+    <h1>Escolha como pagar de volta o seu empréstimo</h1>
+  </div>
+
+  <div class="amount-row">
+    <span>Estás pidiendo:</span>
+    <strong>$ 12.000</strong>
+    <svg width="18" height="18" viewBox="0 0 18 18" fill="none" style="color:#434ce4;cursor:pointer">
+      <path d="M12.5 2.5L15.5 5.5L6 15H3V12L12.5 2.5Z" stroke="#434ce4" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+    </svg>
+  </div>
+
+  <!-- Content -->
+  <div class="content">
+
+    <!-- ── SECTION 1: CARÊNCIA ── -->
+    <div class="section-card" id="card-carencia">
+
+      <!-- Summary (collapsed view) – hidden initially -->
+      <div class="section-summary" id="summary-carencia" style="display:none" onclick="toggleSection('carencia')">
+        <div class="summary-left">
+          <span class="summary-eyebrow">Período de carência</span>
+          <div class="summary-value">
+            <div class="check-circle">
+              <svg width="11" height="9" viewBox="0 0 11 9" fill="none">
+                <path d="M1 4.5L4 7.5L10 1" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+            </div>
+            <span id="carencia-label-collapsed">2 meses</span>
+          </div>
+        </div>
+        <svg class="section-chevron" id="chevron-carencia" width="20" height="20" viewBox="0 0 20 20" fill="none">
+          <path d="M5 8L10 13L15 8" stroke="#434ce4" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </div>
+
+      <!-- Body (expanded view) – visible initially -->
+      <div class="section-body open" id="body-carencia">
+        <div class="section-inner-title">Período de carência</div>
+
+        <div class="carencia-grid">
+          <div class="carencia-card" data-months="0" onclick="selectCarencia(0)">
+            <span class="card-months">0</span>
+            <span class="card-label">meses</span>
+            <span class="card-badge">Sem juros</span>
+          </div>
+          <div class="carencia-card" data-months="1" onclick="selectCarencia(1)">
+            <span class="card-months">1</span>
+            <span class="card-label">mês</span>
+            <span class="card-badge">+0,8%</span>
+          </div>
+          <div class="carencia-card selected" data-months="2" onclick="selectCarencia(2)">
+            <span class="card-months">2</span>
+            <span class="card-label">meses</span>
+            <span class="card-badge">+1,5%</span>
+          </div>
+        </div>
+
+        <div class="info-box">
+          <strong>O que é carência?</strong> É um período onde você não paga parcelas. Os juros continuam correndo normalmente durante esse tempo.
+        </div>
+
+        <button class="btn-continuar" onclick="continuar()">Continuar</button>
+      </div>
+
+    </div>
+
+    <!-- ── SECTION 2: PARCELAS ── -->
+    <div class="section-card" id="card-parcelas">
+
+      <!-- Summary (locked view) – visible initially -->
+      <div class="section-summary" id="summary-parcelas" onclick="toggleSection('parcelas')">
+        <div class="summary-left">
+          <span class="summary-eyebrow">Parcelas</span>
+          <span class="locked-hint" id="parcelas-locked-hint">Selecione após a carência</span>
+        </div>
+        <svg class="section-chevron" id="chevron-parcelas" width="20" height="20" viewBox="0 0 20 20" fill="none">
+          <path d="M5 8L10 13L15 8" stroke="#c0c2d8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </div>
+
+      <!-- Body (expanded view) – hidden initially -->
+      <div class="section-body closed" id="body-parcelas" style="max-height:0">
+        <div class="section-inner-title">Escolha as parcelas</div>
+
+        <div class="parcelas-list">
+          <div class="parcela-item" onclick="selectParcela(6)">
+            <div class="radio-dot" id="r6"></div>
+            <div class="parcela-info">
+              <div class="parcela-main">6x <em>R$ 2.115,70</em></div>
+              <div class="parcela-sub">Total a devolver: R$ 12.694,23</div>
+            </div>
+            <span class="parcela-badge">Menor juros</span>
+          </div>
+          <div class="parcela-item" onclick="selectParcela(12)">
+            <div class="radio-dot checked" id="r12"></div>
+            <div class="parcela-info">
+              <div class="parcela-main">12x <em>R$ 1.134,48</em></div>
+              <div class="parcela-sub">Total a devolver: R$ 13.613,76</div>
+            </div>
+          </div>
+          <div class="parcela-item" onclick="selectParcela(18)">
+            <div class="radio-dot" id="r18"></div>
+            <div class="parcela-info">
+              <div class="parcela-main">18x <em>R$ 822,16</em></div>
+              <div class="parcela-sub">Total a devolver: R$ 14.798,88</div>
+            </div>
+          </div>
+          <div class="parcela-item" onclick="selectParcela(24)">
+            <div class="radio-dot" id="r24"></div>
+            <div class="parcela-info">
+              <div class="parcela-main">24x <em>R$ 668,54</em></div>
+              <div class="parcela-sub">Total a devolver: R$ 16.044,96</div>
+            </div>
+          </div>
+          <div class="parcela-item" onclick="selectParcela(36)">
+            <div class="radio-dot" id="r36"></div>
+            <div class="parcela-info">
+              <div class="parcela-main">36x <em>R$ 504,70</em></div>
+              <div class="parcela-sub">Total a devolver: R$ 18.169,20</div>
+            </div>
+          </div>
+          <div class="parcela-item" onclick="selectParcela(48)">
+            <div class="radio-dot" id="r48"></div>
+            <div class="parcela-info">
+              <div class="parcela-main">48x <em>R$ 415,22</em></div>
+              <div class="parcela-sub">Total a devolver: R$ 19.930,56</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+  </div>
+
+  <!-- Bottom action bar -->
+  <div class="action-bar">
+    <div class="total-row">
+      <span>En total devuelves</span>
+      <span class="total-amount" id="total-display">$ 12.694<sup>23</sup></span>
+    </div>
+    <button class="btn-revisar">Revisar detalle del crédito</button>
+  </div>
+
+</div>
+
+<script>
+  const TOTALS = {
+    6:  { display: '$ 12.694<sup>23</sup>' },
+    12: { display: '$ 13.613<sup>76</sup>' },
+    18: { display: '$ 14.798<sup>88</sup>' },
+    24: { display: '$ 16.044<sup>96</sup>' },
+    36: { display: '$ 18.169<sup>20</sup>' },
+    48: { display: '$ 19.930<sup>56</sup>' },
+  };
+
+  let selectedCarencia = 2;
+  let selectedParcela  = 12;
+  let carenciaLocked   = false;
+  let parcelasOpen     = false;
+
+  // ── Select carência card ──
+  function selectCarencia(months) {
+    selectedCarencia = months;
+    document.querySelectorAll('.carencia-card').forEach(c => {
+      c.classList.toggle('selected', parseInt(c.dataset.months) === months);
+    });
+  }
+
+  // ── Tap Continuar: collapse carência, open parcelas ──
+  function continuar() {
+    carenciaLocked = true;
+
+    // update collapsed label
+    const labels = { 0: 'Sem carência', 1: '1 mês', 2: '2 meses' };
+    document.getElementById('carencia-label-collapsed').textContent = labels[selectedCarencia];
+
+    // collapse carência body
+    collapseBody('carencia', () => {
+      document.getElementById('summary-carencia').style.display = 'flex';
+    });
+
+    // expand parcelas after short delay
+    setTimeout(() => {
+      document.getElementById('summary-parcelas').style.display = 'none';
+      expandBody('parcelas');
+      parcelasOpen = true;
+      // flip parcelas chevron colour handled inline via expanding
+    }, 120);
+  }
+
+  // ── Toggle sections when tapping collapsed headers ──
+  function toggleSection(name) {
+    if (name === 'carencia' && !carenciaLocked) return;
+    if (name === 'parcelas' && !parcelasOpen) return;
+
+    const body    = document.getElementById('body-' + name);
+    const chevron = document.getElementById('chevron-' + name);
+    const summary = document.getElementById('summary-' + name);
+
+    if (body.classList.contains('open')) {
+      collapseBody(name);
+      chevron.classList.remove('rotated');
+    } else {
+      expandBody(name);
+      chevron.classList.add('rotated');
+    }
+  }
+
+  // ── Animate collapse ──
+  function collapseBody(name, cb) {
+    const body = document.getElementById('body-' + name);
+    body.style.maxHeight = body.scrollHeight + 'px';
+    body.classList.remove('open');
+    body.classList.add('closed');
+    body.style.maxHeight = '0';
+    body.style.opacity   = '0';
+    if (cb) setTimeout(cb, 400);
+  }
+
+  // ── Animate expand ──
+  function expandBody(name) {
+    const body = document.getElementById('body-' + name);
+    body.style.maxHeight = '0';
+    body.style.opacity   = '0';
+    body.classList.remove('closed');
+    body.classList.add('open');
+
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        body.style.maxHeight = '700px';
+        body.style.opacity   = '1';
+      });
+    });
+  }
+
+  // ── Select parcela ──
+  function selectParcela(n) {
+    selectedParcela = n;
+    document.querySelectorAll('.radio-dot').forEach(r => r.classList.remove('checked'));
+    document.getElementById('r' + n).classList.add('checked');
+    document.getElementById('total-display').innerHTML = TOTALS[n].display;
+  }
+
+  // ── Set initial section-body max-height so open one can collapse ──
+  window.addEventListener('load', () => {
+    const b = document.getElementById('body-carencia');
+    b.style.maxHeight = b.scrollHeight + 'px';
+  });
+</script>
+
+</body>
+</html>
