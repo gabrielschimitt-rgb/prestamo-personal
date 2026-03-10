@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="pt-BR">
+<html lang="es">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>Escolha como pagar de volta</title>
+  <title>Elige cómo pagar de vuelta</title>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
 
@@ -284,12 +284,12 @@
 
   <!-- Nav -->
   <div class="nav-header">
-    <button class="icon-btn" aria-label="Voltar">
+    <button class="icon-btn" aria-label="Volver">
       <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
         <path d="M12.5 5L7.5 10L12.5 15" stroke="#434ce4" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
       </svg>
     </button>
-    <button class="icon-btn" aria-label="Ajuda">
+    <button class="icon-btn" aria-label="Ayuda">
       <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
         <circle cx="10" cy="10" r="7.5" stroke="#434ce4" stroke-width="1.6"/>
         <circle cx="10" cy="14" r="0.8" fill="#434ce4"/>
@@ -300,7 +300,7 @@
 
   <!-- Title -->
   <div class="page-title">
-    <h1>Escolha como pagar de volta o seu empréstimo</h1>
+    <h1>Elige cómo pagar de vuelta tu préstamo</h1>
   </div>
 
   <div class="amount-row">
@@ -320,14 +320,14 @@
       <!-- Summary (collapsed view) – hidden initially -->
       <div class="section-summary" id="summary-carencia" style="display:none" onclick="toggleSection('carencia')">
         <div class="summary-left">
-          <span class="summary-eyebrow">Período de carência</span>
+          <span class="summary-eyebrow">Elegir cuándo empezar a pagar</span>
           <div class="summary-value">
             <div class="check-circle">
               <svg width="11" height="9" viewBox="0 0 11 9" fill="none">
                 <path d="M1 4.5L4 7.5L10 1" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
               </svg>
             </div>
-            <span id="carencia-label-collapsed">2 meses</span>
+            <span id="carencia-label-collapsed">1 mes</span>
           </div>
         </div>
         <svg class="section-chevron" id="chevron-carencia" width="20" height="20" viewBox="0 0 20 20" fill="none">
@@ -337,12 +337,12 @@
 
       <!-- Body (expanded view) – visible initially -->
       <div class="section-body open" id="body-carencia">
-        <div class="section-inner-title">Período de carência</div>
+        <div class="section-inner-title">Elegir cuándo empezar a pagar</div>
 
         <div class="carencia-grid">
           <div class="carencia-card selected" data-months="1" onclick="selectCarencia(1)">
             <span class="card-months">1</span>
-            <span class="card-label">mês</span>
+            <span class="card-label">mes</span>
             <span class="card-badge">+0,8%</span>
           </div>
           <div class="carencia-card" data-months="2" onclick="selectCarencia(2)">
@@ -358,7 +358,7 @@
         </div>
 
         <div class="info-box">
-          <strong>O que é carência?</strong> É um período onde você não paga parcelas. Os juros continuam correndo normalmente durante esse tempo.
+          <strong>¿Qué es elegir cuándo empezar a pagar?</strong> Es un período donde no pagas cuotas. Los intereses siguen corriendo normalmente durante ese tiempo.
         </div>
 
         <button class="btn-continuar" onclick="continuar()">Continuar</button>
@@ -372,8 +372,8 @@
       <!-- Summary (locked view) – visible initially -->
       <div class="section-summary" id="summary-parcelas" onclick="toggleSection('parcelas')">
         <div class="summary-left">
-          <span class="summary-eyebrow">Parcelas</span>
-          <span class="locked-hint" id="parcelas-locked-hint">Selecione após a carência</span>
+          <span class="summary-eyebrow">Cuotas</span>
+          <span class="locked-hint" id="parcelas-locked-hint">Selecciona después de elegir el período</span>
         </div>
         <svg class="section-chevron" id="chevron-parcelas" width="20" height="20" viewBox="0 0 20 20" fill="none">
           <path d="M5 8L10 13L15 8" stroke="#c0c2d8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
@@ -382,50 +382,43 @@
 
       <!-- Body (expanded view) – hidden initially -->
       <div class="section-body closed" id="body-parcelas" style="max-height:0">
-        <div class="section-inner-title">Escolha as parcelas</div>
+        <div class="section-inner-title">Elige las cuotas</div>
 
         <div class="parcelas-list">
           <div class="parcela-item" onclick="selectParcela(6)">
             <div class="radio-dot" id="r6"></div>
             <div class="parcela-info">
-              <div class="parcela-main">6x <em>R$ 2.115,70</em></div>
-              <div class="parcela-sub">Total a devolver: R$ 12.694,23</div>
+              <div class="parcela-main">6x <em>$ 2.115,70</em></div>
             </div>
-            <span class="parcela-badge">Menor juros</span>
           </div>
           <div class="parcela-item" onclick="selectParcela(12)">
-            <div class="radio-dot checked" id="r12"></div>
+            <div class="radio-dot" id="r12"></div>
             <div class="parcela-info">
-              <div class="parcela-main">12x <em>R$ 1.134,48</em></div>
-              <div class="parcela-sub">Total a devolver: R$ 13.613,76</div>
+              <div class="parcela-main">12x <em>$ 1.134,48</em></div>
             </div>
           </div>
           <div class="parcela-item" onclick="selectParcela(18)">
             <div class="radio-dot" id="r18"></div>
             <div class="parcela-info">
-              <div class="parcela-main">18x <em>R$ 822,16</em></div>
-              <div class="parcela-sub">Total a devolver: R$ 14.798,88</div>
+              <div class="parcela-main">18x <em>$ 822,16</em></div>
             </div>
           </div>
           <div class="parcela-item" onclick="selectParcela(24)">
             <div class="radio-dot" id="r24"></div>
             <div class="parcela-info">
-              <div class="parcela-main">24x <em>R$ 668,54</em></div>
-              <div class="parcela-sub">Total a devolver: R$ 16.044,96</div>
+              <div class="parcela-main">24x <em>$ 668,54</em></div>
             </div>
           </div>
           <div class="parcela-item" onclick="selectParcela(36)">
             <div class="radio-dot" id="r36"></div>
             <div class="parcela-info">
-              <div class="parcela-main">36x <em>R$ 504,70</em></div>
-              <div class="parcela-sub">Total a devolver: R$ 18.169,20</div>
+              <div class="parcela-main">36x <em>$ 504,70</em></div>
             </div>
           </div>
           <div class="parcela-item" onclick="selectParcela(48)">
             <div class="radio-dot" id="r48"></div>
             <div class="parcela-info">
-              <div class="parcela-main">48x <em>R$ 415,22</em></div>
-              <div class="parcela-sub">Total a devolver: R$ 19.930,56</div>
+              <div class="parcela-main">48x <em>$ 415,22</em></div>
             </div>
           </div>
         </div>
@@ -437,9 +430,9 @@
 
   <!-- Bottom action bar -->
   <div class="action-bar">
-    <div class="total-row">
+    <div class="total-row" id="total-row" style="display:none">
       <span>En total devuelves</span>
-      <span class="total-amount" id="total-display">$ 12.694<sup>23</sup></span>
+      <span class="total-amount" id="total-display"></span>
     </div>
     <button class="btn-revisar">Revisar detalle del crédito</button>
   </div>
@@ -474,7 +467,7 @@
     carenciaLocked = true;
 
     // update collapsed label
-    const labels = { 1: '1 mês', 2: '2 meses', 3: '3 meses' };
+    const labels = { 1: '1 mes', 2: '2 meses', 3: '3 meses' };
     document.getElementById('carencia-label-collapsed').textContent = labels[selectedCarencia];
 
     // collapse carência body
@@ -542,6 +535,7 @@
     document.querySelectorAll('.radio-dot').forEach(r => r.classList.remove('checked'));
     document.getElementById('r' + n).classList.add('checked');
     document.getElementById('total-display').innerHTML = TOTALS[n].display;
+    document.getElementById('total-row').style.display = 'flex';
   }
 
   // ── Set initial section-body max-height so open one can collapse ──
