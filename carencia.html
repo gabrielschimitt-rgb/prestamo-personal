@@ -300,7 +300,7 @@
 
   <!-- Title -->
   <div class="page-title">
-    <h1>Elige cómo pagar de vuelta tu préstamo</h1>
+    <h1>Elige cómo pagar el crédito</h1>
   </div>
 
   <div class="amount-row">
@@ -355,10 +355,6 @@
             <span class="card-label">meses</span>
             <span class="card-badge">+2,2%</span>
           </div>
-        </div>
-
-        <div class="info-box">
-          <strong>¿Qué es elegir cuándo empezar a pagar?</strong> Es un período donde no pagas cuotas. Los intereses siguen corriendo normalmente durante ese tiempo.
         </div>
 
         <button class="btn-continuar" onclick="continuar()">Continuar</button>
@@ -490,15 +486,15 @@
     if (name === 'parcelas' && !parcelasOpen) return;
 
     const body    = document.getElementById('body-' + name);
-    const chevron = document.getElementById('chevron-' + name);
     const summary = document.getElementById('summary-' + name);
 
     if (body.classList.contains('open')) {
-      collapseBody(name);
-      chevron.classList.remove('rotated');
+      // Collapsing: show summary again after animation
+      collapseBody(name, () => { summary.style.display = 'flex'; });
     } else {
+      // Expanding: hide summary so it doesn't duplicate the card content
+      summary.style.display = 'none';
       expandBody(name);
-      chevron.classList.add('rotated');
     }
   }
 
